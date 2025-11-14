@@ -58,69 +58,74 @@ You will need the dependencies defined in the requirements.txt file (generated p
 
 ```bash
 pip install -r requirements.txt
+```
 
-
-🚀 Execution Guide (End-to-End)
+** 🚀 Execution Guide (End-to-End)
 
 The project execution is divided into two primary phases: Model Training and $\text{API}$ Deployment.
 
-Phase 1: Train, Tune, and Export the Model (Run ml_pipeline.py)
+### Phase 1: Train, Tune, and Export the Model (Run ml_pipeline.py)
 
 This is the first step and is necessary to create the required model files.
 
 Run the ML Pipeline:
 
+```bash
 python ml_pipeline.py
+```
 
+#### Pipeline Actions:
 
-Pipeline Actions:
+- Loads and preprocesses data.
 
-Loads and preprocesses data.
+- Trains and evaluates Logistic Regression, KNN, Decesion Trees and Random Forest.
 
-Trains and evaluates Logistic Regression, $\text{KNN}$, and Random Forest.
+- Selects Random Forest as the best base model.
 
-Selects Random Forest as the best base model.
+- Tunes the Random Forest model using GridSearchCV.
 
-Tunes the Random Forest model using GridSearchCV.
+- Prints the final metrics and feature importance.
 
-Prints the final metrics and feature importance.
-
-Critical Output Files:
+#### Critical Output Files:
 After successful execution, the script will create two critical files in the root directory:
 
-best_model.pkl: The saved, highly-tuned Random Forest Classifier.
+**best_model.pkl**: The saved, highly-tuned Random Forest Classifier.
 
-scaler.pkl: The fitted StandardScaler object, crucial for transforming incoming $\text{API}$ data.
+**scaler.pkl**: The fitted StandardScaler object, crucial for transforming incoming $\text{API}$ data.
 
-Phase 2: Deploy the Prediction Service with Docker (Run $\text{app.py}$)
+### Phase 2: Deploy the Prediction Service with Docker (Run $\text{app.py}$)
 
 Once the model files (best_model.pkl and scaler.pkl) are created, you can containerize and run the prediction $\text{API}$.
 
-Build the Docker Image:
+#### Build the Docker Image:
 
+```bash
 docker build -t smartfarm-api .
+```
 
-
-Run the Container:
+#### Run the Container:
 
 This command runs the image in the background (-d) and maps the container's port 8080 to your local machine's port 8080 (-p).
 
+```bash
 docker run -d -p 8080:8080 --name smartfarm-service smartfarm-api
+```
 
-
-Verification (Optional):
+#### Verification (Optional):
 
 Check the Docker logs to ensure the Gunicorn server successfully started and loaded the models:
 
+```bash
 docker logs smartfarm-service
+```
 
+#### 💻 Making Predictions (Using the Deployed API)
 
-💻 Making Predictions (Using the Deployed $\text{API}$)
+The prediction service is now running locally at http://localhost:8080. The API endpoint is **/predict** and accepts a **JSON payload**.
 
-The prediction service is now running locally at http://localhost:8080. The $\text{API}$ endpoint is /predict and accepts a $\text{JSON}$ payload.
+Input JSON Format: The payload must be a list containing a single $\text{JSON}$ object with the seven required feature keys (names must match exactly):
 
-Input $\text{JSON}$ Format: The payload must be a list containing a single $\text{JSON}$ object with the seven required feature keys (names must match exactly):
-
+```bash
 [
   {
     "N": 90,
@@ -132,10 +137,11 @@ Input $\text{JSON}$ Format: The payload must be a list containing a single $\tex
     "rainfall": 220.0
   }
 ]
+```
 
+#### Example cURL Request (Predicting Rice):
 
-Example $\text{cURL}$ Request (Predicting Rice):
-
+```bash
 curl -X POST http://localhost:8080/predict -H "Content-Type: application/json" -d '
 [
   {
@@ -148,19 +154,22 @@ curl -X POST http://localhost:8080/predict -H "Content-Type: application/json" -
     "rainfall": 220.0
   }
 ]'
+```
 
+#### Example Response:
 
-Example Response:
-
+```bash
 {
   "prediction": "rice",
   "confidence_score": 0.99
 }
+```
 
-
-🛑 Stopping the Service
+#### 🛑 Stopping the Service
 
 To stop and remove the running Docker container:
 
+```bash
 docker stop smartfarm-service
 docker rm smartfarm-service
+```
