@@ -6,13 +6,13 @@ import pickle
 import os
 
 # --- Configuration ---
-MODEL_FILE = 'readmission_model_pipeline.pkl'
+MODEL_FILE = 'crop_recommendation_model_pipeline.pkl'
 
 # Initialize Flask application
 app = Flask(__name__)
 
 # --- Load Model ---
-# Load the pre-trained pipeline (Preprocessor + XGBoost Model)
+# Load the pre-trained model 
 try:
     with open(MODEL_FILE, 'rb') as file:
         pipeline = pickle.load(file)
@@ -28,17 +28,8 @@ except Exception as e:
 
 # Placeholder for the exact feature order and structure expected by the pipeline
 # This list MUST match the columns used in 'train.py' for non-encoded features.
-# A small, incomplete sample is used here, but in a real app, this list is externalized.
 EXPECTED_RAW_COLUMNS = [
-    'time_in_hospital', 'num_lab_procedures', 'num_procedures', 'num_medications',
-    'number_outpatient', 'number_emergency', 'number_inpatient', 'number_diagnoses',
-    'age', 'gender', 'race', 'admission_type_id', 'discharge_disposition_id',
-    'admission_source_id', 'diag_1', 'diag_2', 'diag_3', 'max_glu_serum', 'A1Cresult',
-    'metformin', 'repaglinide', 'nateglinide', 'chlorpropamide', 'glipizide', 
-    'glyburide', 'pioglitazone', 'rosiglitazone', 'acarbose', 'miglitol', 'troglitazone',
-    'tolazamide', 'examide', 'citoglipton', 'insulin', 'glyburide-metformin', 'glipizide-metformin',
-    'glimepiride-pioglitazone', 'metformin-rosiglitazone', 'metformin-pioglitazone',
-    'change', 'diabetesMed'
+    'N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall'
 ]
 
 # --- API Endpoint ---
@@ -56,31 +47,45 @@ def predict():
 
     # Ensure the input is structured as a DataFrame with expected columns
     try:
+        # Extract features from the request data
+        N = data['N']
+        P = data['P']
+        K = data['K']
+        temperature = data['temperature']
+        humidity = data['humidity']
+        ph = data['ph']
+        rainfall = data['rainfall']
+   
         # Create a DataFrame from the incoming data dictionary
-        input_df = pd.DataFrame([data], columns=EXPECTED_RAW_COLUMNS)
+        input_df = pd.DataFrame([N, P, K, temperature, humidity, ph, rainfall], columns=EXPECTED_RAW_COLUMNS)
+    
+    except KeyError as e:
+        return jsonify({'error': f'Missing parameter: {e}'}), 400
+
     except ValueError as e:
         return jsonify({"error": f"Input data structure error: {e}. Check missing columns."}), 400
 
+
+    # Scale the input data using the loaded scaler
+    # scaled_data = scaler.transform(input_data)
+
     # 2. Make Prediction
-    # The pipeline handles both preprocessing (scaling/encoding) and prediction
-    # predict_proba returns probabilities for both classes [P(No Readmit), P(Readmit)]
-    probability_of_readmission = pipeline.predict_proba(input_df)[:, 1][0]
+    probability_of_crop_recommended = pipeline.predict_proba(input_df)[:, 1][0]
     
-    # Predict the final class (0 or 1)
+    # Predict the final class
     prediction = pipeline.predict(input_df)[0]
     
     # 3. Return result as JSON
     response = {
-        'readmission_probability': round(probability_of_readmission, 4),
-        'predicted_class': int(prediction),
-        'message': 'High Risk of Readmission' if prediction == 1 else 'Low Risk of Readmission'
+        'crop_probability': round(probability_of_crop_recommended, 4),
+        'recommended_crop': int(prediction)
     }
     
     return jsonify(response)
 
 @app.route('/', methods=['GET'])
 def home():
-    return "Readmission Risk Prediction Service is running. Use POST /predict to submit data."
+    return "Crop Recommendation Prediction Service is running. Use POST /predict to submit data."
 
 # --- Run Server ---
 if __name__ == '__main__':
