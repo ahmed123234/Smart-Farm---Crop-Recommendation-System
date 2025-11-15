@@ -6,11 +6,11 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
-from xgboost import XGBClassifier
 from sklearn.metrics import f1_score
+from sklearn.ensemble import RandomForestClassifier
+
 
 # --- 1. Data Loading and Preparation Functions ---
-
 def load_data(): 
   DATA_URL = "https://raw.githubusercontent.com/ahmed123234/Smart-Farm---Crop-Recommendation-System/refs/heads/main/Crop_recommendation.csv"
     
@@ -27,18 +27,19 @@ def load_data():
 
 def load_and_preprocess_data():
     """Loads, cleans, and separates the data."""
+    
     df = load_data()
+  
     # 1. Cleaning and Target Definition
-
     print("\n--- 2.2. Checking for Missing Values ---")
     print(df.isnull().sum())
     print("-" * 30)
     if df.isnull().sum().any():
         print("Addressing Missing Values")
         df.fillna(0, inplace=True)
-        print("✅ Missing values replaced with 0.")
+        print("Missing values replaced with 0.")
     else:
-        print("✅ No missing values found. Data quality is high.")
+        print("No missing values found. Data quality is high.")
     
     print("\n--- 2.3. Fix Data Types ---")
     print(df.dtypes)
@@ -55,7 +56,7 @@ def load_and_preprocess_data():
     print("-" * 30)
     # Insight: A balanced dataset is key for classification.
     if df['label'].value_counts().std() < 5: # Small threshold for standard deviation
-        print("✅ Dataset is perfectly balanced (100 records per crop), ideal for training.")
+        print("Dataset is perfectly balanced (100 records per crop), ideal for training.")
     else:
         print("CAUTION: Dataset is imbalanced. May require techniques like oversampling/undersampling.")
     
@@ -68,70 +69,11 @@ def load_and_preprocess_data():
     # Statistics reveal range, mean, and potential outliers
     print(X.describe().T)
     print("-" * 30)
-
-
-    # Simple Label Encoding for binary features
-    # le = LabelEncoder()
-    # for col in ['change', 'diabetesMed']:
-    #     df[col] = le.fit_transform(df[col])
-    
-    # df = df[df['gender'] != 'Unknown/Invalid']
-    # df['gender'] = le.fit_transform(df['gender'])
-
-    # y = df['READMIT_30_DAYS']
-    # X = df.drop('READMIT_30_DAYS', axis=1)
-    
+  
     return X, y
 
-def create_pipeline(X, y):
-    """
-    Defines the full end-to-end pipeline: Preprocessing + Model.
-    """
-    # Separate feature types
-    numerical_features = X.select_dtypes(include=np.number).columns.tolist()
-    categorical_features = X.select_dtypes(include='object').columns.tolist()
-
-    # 1. Preprocessing Pipelines
-    numerical_transformer = Pipeline(steps=[
-        ('imputer', SimpleImputer(strategy='median')),
-        ('scaler', StandardScaler())
-    ])
-    categorical_transformer = Pipeline(steps=[
-        ('imputer', SimpleImputer(strategy='most_frequent')),
-        ('onehot', OneHotEncoder(handle_unknown='ignore', sparse_output=False))
-    ])
-    
-    # Column Transformer to apply transformations to correct columns
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ('num', numerical_transformer, numerical_features),
-            ('cat', categorical_transformer, categorical_features)
-        ],
-        remainder='passthrough'
-    )
-    
-    # 2. Model Definition
-    # XGBoost with parameters tuned to handle class imbalance (scale_pos_weight)
-    xgb_model = XGBClassifier(
-        random_state=42, 
-        use_label_encoder=False, 
-        eval_metric='logloss', 
-        scale_pos_weight=9, # Approx ratio of negatives to positives (0s/1s)
-        n_estimators=200,    # From light tuning/default choice
-        max_depth=5,         # From light tuning/default choice
-        learning_rate=0.05
-    )
-
-    # 3. Final Pipeline: Preprocessor -> Model
-    full_pipeline = Pipeline(steps=[
-        ('preprocessor', preprocessor),
-        ('classifier', xgb_model)
-    ])
-    
-    return full_pipeline
 
 # --- 2. Main Execution ---
-
 if __name__ == "__main__":
     print("Starting Model Training for Readmission Risk Prediction...")
     
@@ -145,20 +87,28 @@ if __name__ == "__main__":
     )
 
     # Scaling features (Essential for distance-based models like KNN and helpful for LR)
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
+    # scaler = StandardScaler()
+    # X_train_scaled = scaler.fit_transform(X_train)
+    # X_test_scaled = scaler.transform(X_test)
   
-    # 2.2. Create and train the full pipeline
-    # full_pipeline = create_pipeline(X, y)
-    model = RandomForestClassifier(random_state=42, criterion='gini', max_depth=10, max_features='sqrt', n_estimators=300)
+    # 2.2 Model Definition
+    # Random Forest with parameters tuned
+    RF_model = RandomForestClassifier(
+        random_state=42,
+        criterion='gini',
+        max_depth=10,
+        max_features='sqrt',
+        min_samples_leaf=1,
+        min_samples_split=10,
+        n_estimators=300
+    )
+    print("Training the Random Forest model...")
     
-    print("Training the full XGBoost Pipeline...")
     # Train the pipeline (preprocessing steps are fitted on X_train first)
-    model.fit(X_train, y_train)
+    RF_model.fit(X_train, y_train)
 
     # 2.3. Evaluate on the Test set
-    y_pred = full_pipeline.predict(X_test)
+    y_pred = RF_model.predict(X_test)
     final_f1 = f1_score(y_test, y_pred)
     
     print(f"\nTraining Complete.")
@@ -167,7 +117,6 @@ if __name__ == "__main__":
     # 2.4. Save the trained pipeline
     MODEL_FILENAME = 'crop_recommendation_model_pipeline.pkl'
     with open(MODEL_FILENAME, 'wb') as file:
-        pickle.dump(full_pipeline, file)
+        pickle.dump(RF_model, file)
         
     print(f"Successfully saved the model pipeline to '{MODEL_FILENAME}'")
-    print("This file contains both the preprocessor and the trained XGBoost model.")
