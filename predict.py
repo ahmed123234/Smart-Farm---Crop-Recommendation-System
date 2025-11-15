@@ -70,14 +70,14 @@ def predict():
     # scaled_data = scaler.transform(input_data)
 
     # 2. Make Prediction
-    probability_of_crop_recommended = pipeline.predict_proba(input_df)[:, 1][0]
+    probability_of_recommended_crop = pipeline.predict_proba(input_df)[:, 1][0]
     
     # Predict the final class
     prediction = pipeline.predict(input_df)[0]
     
     # 3. Return result as JSON
     response = {
-        'crop_probability': round(probability_of_crop_recommended, 4),
+        'confidence_score': round(probability_of_recommended_crop, 4),
         'recommended_crop': int(prediction)
     }
     
