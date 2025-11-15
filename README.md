@@ -8,9 +8,9 @@ The project follows a full MLOps lifecycle, moving from data analysis and model 
 
 ## 🌟 Key Features
 
-* **Data Preparation & $\text{EDA}$**: Comprehensive analysis of the dataset, including feature distribution, balancing checks, and necessary data scaling.
+* **Data Preparation & EDA**: Comprehensive analysis of the dataset, including feature distribution, balancing checks, and necessary data scaling.
 
-* **Multi-Model Training**: Compares the performance of three classic classification algorithms: Logistic Regression, K-Nearest Neighbors ($\text{KNN}$), and Random Forest.
+* **Multi-Model Training**: Compares the performance of three classic classification algorithms: Logistic Regression, K-Nearest Neighbors (KNN), and Random Forest.
 
 * **Hyperparameter Tuning**: Utilizes GridSearchCV on the best-performing model (Random Forest) to find the optimal parameter set, maximizing predictive accuracy.
 
@@ -46,9 +46,9 @@ Verify that the following files are present in your project directory (these wil
 
 **requirements.txt**
 
-**ml_pipeline.py**
+**train.py**
 
-**app.py**
+**predict.py**
 
 **Dockerfile**
 
@@ -71,14 +71,14 @@ This is the first step and is necessary to create the required model files.
 Run the ML Pipeline:
 
 ```bash
-python ml_pipeline.py
+python train.py
 ```
 
 #### Pipeline Actions:
 
 - Loads and preprocesses data.
 
-- Trains and evaluates Logistic Regression, KNN, Decesion Trees and Random Forest.
+- Trains and evaluates Logistic Regression, KNN, Decesion Trees, XGBoost and Random Forest.
 
 - Selects Random Forest as the best base model.
 
@@ -93,7 +93,7 @@ After successful execution, the script will create two critical files in the roo
 
 **scaler.pkl**: The fitted StandardScaler object, crucial for transforming incoming $\text{API}$ data.
 
-### Phase 2: Deploy the Prediction Service with Docker (Run $\text{app.py}$)
+### Phase 2: Deploy the Prediction Service with Docker (Run $\text{predict.py}$)
 
 Once the model files (best_model.pkl and scaler.pkl) are created, you can containerize and run the prediction $\text{API}$.
 
@@ -160,7 +160,7 @@ curl -X POST http://localhost:8080/predict -H "Content-Type: application/json" -
 
 ```bash
 {
-  "prediction": "rice",
+  "crop_recommended": "rice",
   "confidence_score": 0.99
 }
 ```
