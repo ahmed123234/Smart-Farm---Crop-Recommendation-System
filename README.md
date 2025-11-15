@@ -64,7 +64,7 @@ pip install -r requirements.txt
 
 The project execution is divided into two primary phases: Model Training and $\text{API}$ Deployment.
 
-### Phase 1: Train, Tune, and Export the Model (Run ml_pipeline.py)
+### Phase 1: Train, Tune, and Export the Model (Run train.py)
 
 This is the first step and is necessary to create the required model files.
 
@@ -89,13 +89,13 @@ python train.py
 #### Critical Output Files:
 After successful execution, the script will create two critical files in the root directory:
 
-**best_model.pkl**: The saved, highly-tuned Random Forest Classifier.
+**crop_recommendation_model_pipeline.pkl**: The saved, highly-tuned Random Forest Classifier.
 
 **scaler.pkl**: The fitted StandardScaler object, crucial for transforming incoming $\text{API}$ data.
 
 ### Phase 2: Deploy the Prediction Service with Docker (Run $\text{predict.py}$)
 
-Once the model files (best_model.pkl and scaler.pkl) are created, you can containerize and run the prediction $\text{API}$.
+Once the model files (crop_recommendation_model_pipeline.pkl and scaler.pkl) are created, you can containerize and run the prediction $\text{API}$.
 
 #### Build the Docker Image:
 
@@ -160,8 +160,8 @@ curl -X POST http://localhost:8080/predict -H "Content-Type: application/json" -
 
 ```bash
 {
-  "crop_recommended": "rice",
-  "confidence_score": 0.99
+  "confidence_score": 0.99,
+  "recommended_crop": "rice"
 }
 ```
 
