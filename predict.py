@@ -32,6 +32,7 @@ EXPECTED_RAW_COLUMNS = [
     'N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall'
 ]
 
+
 # --- API Endpoint ---
 
 @app.route('/predict', methods=['POST'])
@@ -55,9 +56,19 @@ def predict():
         humidity = data['humidity']
         ph = data['ph']
         rainfall = data['rainfall']
+
+        row_data = {
+            'N': N,
+            'P': P,
+            'K': K,
+            'temperature': temperature,
+            'humidity': humidity,
+            'ph': ph,
+            'rainfall': rainfall
+        }
    
-        # Create a DataFrame from the incoming data dictionary
-        input_df = pd.DataFrame([N, P, K, temperature, humidity, ph, rainfall], columns=EXPECTED_RAW_COLUMNS)
+        # # Create a DataFrame from the incoming data dictionary
+        input_df = pd.DataFrame([row_data], columns=EXPECTED_RAW_COLUMNS)
     
     except KeyError as e:
         return jsonify({'error': f'Missing parameter: {e}'}), 400
@@ -69,16 +80,16 @@ def predict():
     # Scale the input data using the loaded scaler
     # scaled_data = scaler.transform(input_data)
 
-    # 2. Make Prediction
+    # # 2. Make Prediction
     probability_of_recommended_crop = pipeline.predict_proba(input_df)[:, 1][0]
     
-    # Predict the final class
+    # # Predict the final class
     prediction = pipeline.predict(input_df)[0]
     
     # 3. Return result as JSON
     response = {
         'confidence_score': round(probability_of_recommended_crop, 4),
-        'recommended_crop': int(prediction)
+        'recommended_crop': prediction
     }
     
     return jsonify(response)
@@ -89,5 +100,6 @@ def home():
 
 # --- Run Server ---
 if __name__ == '__main__':
+    
     # Running on all interfaces (0.0.0.0) and port 5000 is standard for deployment
     app.run(host='0.0.0.0', port=5000)
