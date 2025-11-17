@@ -50,7 +50,7 @@ Download the **Crop Recommendation Dataset** (Crop_recommendation.csv) from Kagg
 
 Verify that the following files are present in your project directory (these will be generated throughout our process):
 
-**'README.md**(this file)
+**README.md**(this file)
 
 **Pipfile**
 
@@ -72,7 +72,7 @@ pip install pipenv
 pipenv install 
 ```
 
-** 🚀 Execution Guide (End-to-End)
+## 🚀 Execution Guide (End-to-End)
 
 The project execution is divided into two primary phases: Model Training and $\text{API}$ Deployment.
 
@@ -224,6 +224,10 @@ kubectl apply -f service.yaml
 minikube service smartfarm-service --url
 ```
 ### Cloud Deployment (Render)
+use **https://smartfarm-predictor.onrender.com/** (POST) to access the predict service
+
+Example accessing the predict service using https://smartfarm-predictor.onrender.com/ 
+
 ```bash
 curl -X POST https://smartfarm-predictor.onrender.com/: 19, "temperature": 27.3179, "humidity": 51.6692, "ph": 6.0052, "rainfall": 32.5591}'
 
