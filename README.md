@@ -12,7 +12,7 @@ The core of the application is a pre-trained Random Forest Classifier wrapped wi
 
 * **Data Preparation & EDA**: Comprehensive analysis of the dataset, including feature distribution, balancing checks, and necessary data scaling.
 
-* **Multi-Model Training**: Compares the performance of three classic classification algorithms: Logistic Regression, K-Nearest Neighbors (KNN), Random Forests, Decison Trees and XGBoot.
+* **Multi-Model Training**: Compares the performance of three classic classification algorithms: Logistic Regression, K-Nearest Neighbors (KNN), Random Forests, Decison Trees and XGBoost.
 
 * **Hyperparameter Tuning**: Utilizes GridSearchCV on the best-performing model (Random Forest) to find the optimal parameter set, maximizing predictive accuracy.
 
